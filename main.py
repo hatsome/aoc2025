@@ -1,5 +1,6 @@
 import pathlib
 import functools
+import textwrap
 
 def main(day: str, part: str):
     input_file = pathlib.Path('inputs') / f"{day}_{part}"
@@ -28,6 +29,27 @@ def day_1(input: str, part: str):
             return cnt, n_pos
         cnt_pos_list = [prev := cnt_pos(rot, prev[1]) for rot in rotation_list]
         return functools.reduce(lambda x, y: (abs(x[0]) + abs(y[0]), 0), cnt_pos_list)[0]
+
+def day_2(input: str, part: str):
+    def is_invalid(id: str):
+        if part == "1":
+            if len(id) % 2 == 1:
+                return False
+            return id[:len(id)//2] == id[len(id)//2:]
+        if part == "0" or "2":
+            for repeats in range(2, len(id) +1):
+                if len(id) % repeats == 1:
+                    continue
+                if len(set(textwrap.wrap(id, len(id)//repeats))) == 1:
+                    return True
+            return False
+    ranges = map(lambda x: tuple(map(lambda y: int(y), x.split("-"))),input.split(","))
+    invalid_sum = 0
+    for start, end in ranges:
+        for id in range(start, end + 1):
+            if is_invalid(str(id)):
+                invalid_sum += id
+    return invalid_sum
 
 
 if __name__ == '__main__':
