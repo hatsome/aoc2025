@@ -51,6 +51,22 @@ def day_2(input: str, part: str):
                 invalid_sum += id
     return invalid_sum
 
+def day_3(input: str, part: str):
+    def get_batteries(bank: str, num: int):
+        if num <= 0:
+            return max(bank)
+        else:
+            idx_0 = bank.index(max(bank[:-num]))
+            return bank[idx_0] + get_batteries(bank[idx_0+1:], num - 1)
+    banks = input.splitlines()
+    sum = 0
+    for bank in banks:
+        if part == "1":
+            num = 1
+        elif part == "0" or "2":
+            num = 11
+        sum += int(get_batteries(bank, num))
+    return sum
 
 if __name__ == '__main__':
     day = input('Input puzzle [day]: ')
