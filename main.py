@@ -3,7 +3,7 @@ import functools
 import textwrap
 
 def main(day: str, part: str):
-    input_file = pathlib.Path('inputs') / f"{day}_{part}"
+    input_file = pathlib.Path('inputs') / f"{day + "e" if part == "0" else day}" 
     with open(input_file, 'r') as f:
         input = f.read()
     
