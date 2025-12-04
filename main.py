@@ -68,6 +68,50 @@ def day_3(input: str, part: str):
         sum += int(get_batteries(bank, num))
     return sum
 
+def day_4(input: str, part: str):
+    diagram = input.splitlines()
+    nadjacant = {}
+    for row, line in enumerate(diagram):
+        for col, pos in enumerate(line):
+            if pos == "@":
+                for x in range(-1, 2):
+                    for y in range(-1, 2):
+                        if not x == y == 0:
+                            idx = (row + y, col + x)
+                            nadjacant[idx] = nadjacant.get(idx, 0) + 1
+
+    def remove_step():
+        nremoved_step = 0
+        nonlocal nadjacant
+        next_nadjacant = nadjacant.copy()
+        for row, line in enumerate(diagram):
+            for col, pos in enumerate(line):
+                if pos == "@" and nadjacant.get((row, col), 0) < 4:
+                    diagram[row] = diagram[row][:col] + "." + diagram[row][col+1:]
+                    nremoved_step += 1
+                    for x in range(-1, 2):
+                        for y in range(-1, 2):
+                            if not x == y == 0:
+                                idx = (row + y, col + x)
+                                next_nadjacant[idx] = next_nadjacant.get(idx, 0) - 1
+        nadjacant = next_nadjacant
+        return nremoved_step
+
+    if part == "1":
+        return remove_step()
+    elif part == "0" or part == "2":
+        nremoved = 0
+        while True:
+            nremoved_step = remove_step()
+            if nremoved_step > 0:
+                nremoved += nremoved_step
+            else:
+                break
+        return nremoved
+
+        
+
+
 if __name__ == '__main__':
     day = input('Input puzzle [day]: ')
     part = input('Input puzzle [part]: ')
