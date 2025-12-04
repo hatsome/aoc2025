@@ -17,7 +17,7 @@ def day_1(input: str, part: str):
         prev = 50
         position_list = [prev := (rot + prev) % 100 for rot in rotation_list]
         return position_list.count(0)
-    if part == "0" or "2":
+    if part == "0" or part == "2":
         prev = (0, 50)
         def cnt_pos(rot, pos):
             cnt, n_pos = divmod(rot + pos, 100)
@@ -36,7 +36,7 @@ def day_2(input: str, part: str):
             if len(id) % 2 == 1:
                 return False
             return id[:len(id)//2] == id[len(id)//2:]
-        if part == "0" or "2":
+        if part == "0" or part == "2":
             for repeats in range(2, len(id) +1):
                 if len(id) % repeats == 1:
                     continue
@@ -63,7 +63,7 @@ def day_3(input: str, part: str):
     for bank in banks:
         if part == "1":
             num = 1
-        elif part == "0" or "2":
+        elif part == "0" or part == "2":
             num = 11
         sum += int(get_batteries(bank, num))
     return sum
