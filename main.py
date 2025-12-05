@@ -1,6 +1,9 @@
+import os
 import pathlib
 import functools
 import textwrap
+import itertools
+from dataclasses import dataclass
 
 def main(day: str, part: str):
     input_file = pathlib.Path('inputs') / f"{day + "e" if part == "0" else day}" 
@@ -109,7 +112,67 @@ def day_4(input: str, part: str):
                 break
         return nremoved
 
+def day_5(input: str, part: str):
+    @dataclass
+    class FreshRange():
+        start: int
+        stop: int
+
+        def overlaps(self, other: FreshRange):
+            if other.start <= self.stop <= other.stop:
+                return True
+            if other.start <= self.start <= other.stop:
+                return True
+            return False
         
+        def absorb(self, other: FreshRange):
+            start = None
+            if self.start <= other.start:
+                start = self.start
+            else:
+                start = other.start
+            stop = None
+            if self.stop >= other.stop:
+                stop = self.stop
+            else:
+                stop = other.stop
+            self.start = start
+            self.stop = stop
+        
+        def inside(self, value: int):
+            return self.start <= value <= self.stop
+        
+        def count(self):
+            return self.stop - self.start + 1
+        
+        def __repr__(self):
+            return f"{self.start}-{self.stop}"
+
+    ranges, ids = map(lambda x: x.splitlines(), input.split("\n\n"))
+    fresh_ranges = []
+    for range in ranges:
+        start, stop = map(lambda x: int(x), range.split("-"))
+        fresh_ranges.append(FreshRange(start, stop))
+    fresh_ranges.sort(key=lambda x: x.start)
+    
+    combined_ranges = [fresh_ranges[0]]
+    for fresh_range in fresh_ranges[1:]:
+        if fresh_range.overlaps(combined_ranges[-1]):
+            combined_ranges[-1].absorb(fresh_range)
+        else:
+            combined_ranges.append(fresh_range)
+    
+    if part == "1":
+        count = 0
+        for id in map(lambda x: int(x), ids):
+            is_fresh = any(map(lambda x: x.inside(id), combined_ranges))
+            if is_fresh:
+                count += 1
+        return count
+    elif part == "0" or part == "2":
+        return sum(map(lambda x: x.count(), combined_ranges))
+
+
 
 
 if __name__ == '__main__':
