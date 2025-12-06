@@ -3,6 +3,7 @@ import pathlib
 import functools
 import textwrap
 import itertools
+import operator
 from dataclasses import dataclass
 
 def main(day: str, part: str):
@@ -173,7 +174,11 @@ def day_5(input: str, part: str):
         return sum(map(lambda x: x.count(), combined_ranges))
 
 
-
+def day_6(input: str, part: str):
+    if part == "1":
+        return sum(functools.reduce(op, nums) for op, nums in zip(({"*": operator.mul,"+": operator.add}[op] for op in input.splitlines()[-1].split()), zip(*(map(int, line.split()) for line in input.splitlines()[:-1]))))
+    elif part == "0" or part == "2":
+        return sum(functools.reduce(op, (int(num) for num in nums)) for op, nums in zip(({"*": operator.mul,"+": operator.add}[op] for op in input.splitlines()[-1].split()), (list(group) for is_num, group in itertools.groupby(["".join(sym).strip() for sym in zip(*(itertools.chain(line) for line in input.splitlines()[:-1]))], key=str.isdigit) if is_num)))
 
 if __name__ == '__main__':
     day = input('Input puzzle [day]: ')
