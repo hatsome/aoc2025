@@ -180,6 +180,38 @@ def day_6(input: str, part: str):
     elif part == "0" or part == "2":
         return sum(functools.reduce(op, (int(num) for num in nums)) for op, nums in zip(({"*": operator.mul,"+": operator.add}[op] for op in input.splitlines()[-1].split()), (list(group) for is_num, group in itertools.groupby(["".join(sym).strip() for sym in zip(*(itertools.chain(line) for line in input.splitlines()[:-1]))], key=str.isdigit) if is_num)))
 
+def day_7(input: str, part: str):
+    lines = input.splitlines()
+    splitters = {x: [] for x in range(0, len(lines[0]))}
+    for y, line in enumerate(lines):
+        for x in [i for i, c in enumerate(line) if c == "^"]:
+            splitters[x].append(y)
+    
+    @functools.cache
+    def advance_beam(start_x: int, start_y: int) -> set[tuple[int, int]]:
+        try:
+            y = next(itertools.dropwhile(lambda y: y < start_y,splitters[start_x]))
+            splitter = {(start_x, y)}
+            return splitter | advance_beam(start_x - 1, y) | advance_beam(start_x + 1, y)
+        except StopIteration:
+            return set()
+    
+    @functools.cache
+    def advance_quantum_beam(start_x: int, start_y: int) -> int:
+        try:
+            y = next(itertools.dropwhile(lambda y: y < start_y,splitters[start_x]))
+            return advance_quantum_beam(start_x - 1, y) + advance_quantum_beam(start_x + 1, y)
+        except StopIteration:
+            return 1
+    
+    init_x = lines[0].index("S")
+    if part == "1":
+        hit_splitters = advance_beam(init_x, 0)
+        return len(hit_splitters)
+    elif part == "0" or part == "2":
+        timeline_count = advance_quantum_beam(init_x, 0)
+        return timeline_count
+
 if __name__ == '__main__':
     day = input('Input puzzle [day]: ')
     part = input('Input puzzle [part]: ')
