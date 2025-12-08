@@ -211,6 +211,48 @@ def day_7(input: str, part: str):
     elif part == "0" or part == "2":
         timeline_count = advance_quantum_beam(init_x, 0)
         return timeline_count
+    
+def day_8(input: str, part: str):
+    positions = [tuple(int(num) for num in line.split(",")) for line in input.splitlines()]
+    squared_distances = []
+    for idx, pos in enumerate(positions[:-1]):
+        for o_idx, other_pos in enumerate(positions[idx+1:], idx+1):
+            x, y, z = pos
+            xo, yo, zo = other_pos
+            s_dist = pow(x-xo,2) + pow(y-yo,2) + pow(z-zo,2)
+            squared_distances.append((s_dist, idx, o_idx))
+    squared_distances.sort(key=lambda x: x[0])
+    
+    if part == "1":
+        circuits_dict = {}
+        for _, idx, o_idx in squared_distances[:1000]:
+            circuit = circuits_dict.get(idx, {idx})
+            o_circuit = circuits_dict.get(o_idx, {o_idx})
+            j_circuit = circuit | o_circuit
+            for i in j_circuit:
+                circuits_dict[i] = j_circuit
+    
+        circuits = []
+        len_prod = 1
+        for circuit in sorted(list(circuits_dict.values()), key=lambda x: len(x), reverse=True):
+            if circuit not in circuits:
+                circuits.append(circuit)
+                len_prod *= len(circuit)
+                if len(circuits) >= 3:
+                    break
+        
+        return len_prod
+    elif part == "0" or part == "2":
+        circuits_dict = {}
+        for _, idx, o_idx in squared_distances:
+            circuit = circuits_dict.get(idx, {idx})
+            o_circuit = circuits_dict.get(o_idx, {o_idx})
+            j_circuit = circuit | o_circuit
+            if len(j_circuit) == len(positions):
+                print(positions[idx], positions[o_idx])
+                return positions[idx][0] * positions[o_idx][0]
+            for i in j_circuit:
+                circuits_dict[i] = j_circuit
 
 if __name__ == '__main__':
     day = input('Input puzzle [day]: ')
