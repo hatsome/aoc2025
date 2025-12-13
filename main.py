@@ -4,6 +4,7 @@ import functools
 import textwrap
 import itertools
 import operator
+from collections import deque
 from dataclasses import dataclass
 
 def main(day: str, part: str):
@@ -253,6 +254,40 @@ def day_8(input: str, part: str):
                 return positions[idx][0] * positions[o_idx][0]
             for i in j_circuit:
                 circuits_dict[i] = j_circuit
+
+def day_11(input: str, part: str):
+    lines = input.splitlines()
+    devices = {}
+    for line in lines:
+        label, *paths = line.split(" ")
+        devices[label.removesuffix(":")] = paths
+    
+    if part == "1":
+        goal = "out"
+        stack = deque()
+        stack.extend(devices["you"])
+        path_count = 0
+        while len(stack) > 0:
+            next = stack.pop()
+            if next == goal:
+                path_count += 1
+            else:
+                stack.extend(devices[next])
+        return path_count
+    elif part == "0" or part == "2":
+        @functools.cache
+        def jump(device: str, visited_fft: bool, visited_dac: bool) -> int:
+            if device == "out":
+                return 1 if visited_fft and visited_dac else 0
+            if device == "fft":
+                visited_fft = True
+            if device == "dac":
+                visited_dac = True
+            count = 0
+            for next in devices[device]:
+                count += jump(next, visited_fft, visited_dac)
+            return count
+        return jump("svr", False, False)
 
 if __name__ == '__main__':
     day = input('Input puzzle [day]: ')
