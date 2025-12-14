@@ -255,6 +255,120 @@ def day_8(input: str, part: str):
             for i in j_circuit:
                 circuits_dict[i] = j_circuit
 
+def day_9(input: str, part: str):
+    points = [tuple(int(num) for num in line.split(",")) for line in input.splitlines()]
+    
+    if part == "1":
+        largest_area = 0
+        for idx, point in enumerate(points[:-1]):
+            for o_point in points[idx+1:]:
+                x, y = point
+                o_x, o_y = o_point
+                area = (abs(x - o_x) + 1) * (abs(y - o_y) +1)
+                if area > largest_area:
+                    largest_area = area
+        return largest_area
+    elif part == "0" or part == "2":
+        prev_x, prev_y = points[0]
+        prev_prev_x, prev_prev_y = points[-1]
+        i_points = points[1:]
+        i_points.append((prev_x, prev_y))
+        v_lines = []
+        lines = []
+        special_points = set()
+        min_x = prev_x
+        for cur_x, cur_y in i_points:
+            if cur_x < min_x:
+                min_x = cur_x
+            if cur_x == prev_x:
+                v_lines.append((prev_x, prev_y, cur_y))
+                lines.append((cur_x, cur_y, prev_x, prev_y))
+            elif cur_y == prev_y:
+                lines.append((cur_x, cur_y, prev_x, prev_y))
+            if prev_x == prev_prev_x and prev_y < prev_prev_y and prev_x >  cur_x and prev_y == cur_y :
+                special_points.add((prev_x, prev_y))
+            elif prev_x > prev_prev_x and prev_y == prev_prev_y and prev_x == cur_x and prev_y > cur_y:
+                special_points.add((prev_x, prev_y))
+            prev_prev_x, prev_prev_y = prev_x, prev_y
+            prev_x, prev_y = cur_x, cur_y
+
+        def on_line(v_line: tuple[int, int, int], x: int, y: int):
+            v_x = v_line[0]
+            v_top_y, v_bottom_y = sorted(v_line[1:])
+
+            return x == v_x and v_bottom_y > y > v_top_y
+
+        def intersects_scan(v_line: tuple[int, int, int], h_line: tuple[int, int, int]) -> bool:
+            v_x = v_line[0]
+            v_top_y, v_bottom_y = sorted(v_line[1:])
+
+            h_left_x, h_right_x = sorted(h_line[:2])
+            h_y = h_line[2]
+            
+            if (v_x, v_top_y) in special_points and v_top_y == h_y:
+                return False
+
+            if (v_x, v_bottom_y) in special_points and v_bottom_y == h_y:
+                return False
+
+            return v_top_y <= h_y <= v_bottom_y and h_left_x <= v_x <= h_right_x
+
+        @functools.cache
+        def in_loop(x: int, y: int) -> bool:
+            if (x, y) in points:
+                return True
+            scan_line = (x, min_x-1, y)
+            count = 0
+            for v_line in v_lines:
+                if on_line(v_line, x, y):
+                    return True
+                if intersects_scan(v_line, scan_line):
+                    count += 1
+            return count % 2 == 1
+
+        def line_outside_box(line: tuple[int, int, int, int], top_left: tuple[int, int], bottom_right: tuple[int, int]):
+            l_x, l_y, ol_x, ol_y = line
+            tl_x, tl_y = top_left
+            br_x, br_y = bottom_right
+            if l_x == ol_x:
+                return max(l_y, ol_y) <= tl_y or min(l_y, ol_y) >= br_y or l_x <= tl_x or l_x >= br_x
+            if l_y == ol_y:
+                return max(l_x, ol_x) <= tl_x or min(l_x, ol_x) >= br_x or l_y <= tl_y or l_y >= br_y
+
+        def area_in_loop(x: int, y: int, o_x: int, o_y: int) -> bool:
+            top_left = (min(x, o_x), min(y, o_y))
+            top_right = (max(x, o_x), min(y, o_y))
+            bottom_left = (min(x, o_x), max(y, o_y))
+            bottom_right = (max(x, o_x), max(y, o_y))
+
+            if not (in_loop(*top_left) and in_loop(*top_right) and in_loop(*bottom_left) and in_loop(*bottom_right)):
+                return False
+            
+            for line in lines:
+                if not line_outside_box(line, top_left, bottom_right):
+                    return False
+            return True
+
+        area_points = []
+        for idx, point in enumerate(points[:-1]):
+            for o_point in points[idx+1:]:
+                x, y = point
+                o_x, o_y = o_point
+                if x == o_x or y == o_y:
+                    continue
+                area = (abs(x - o_x) + 1) * (abs(y - o_y) +1)
+                area_points.append((area, (x, y), (o_x, o_y)))
+
+        largest_area = 0
+        for area, p0, p1 in sorted(area_points, key=lambda x: x[0], reverse=True):
+            x, y = p0
+            o_x, o_y = p1
+            if area > largest_area:
+                if area_in_loop(x, y, o_x, o_y):
+                    largest_area = area
+                    break
+        return largest_area
+
 def day_11(input: str, part: str):
     lines = input.splitlines()
     devices = {}
